@@ -1,0 +1,15 @@
+{
+  "name": "job-applications-tracker-extension",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.273",
+    "esbuild": "^0.24.0",
+    "typescript": "^5.6.2"
+  }
+}

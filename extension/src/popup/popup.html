@@ -1,0 +1,37 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Track job</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <form id="track-form">
+      <label>
+        <span>Company</span>
+        <input name="company" autocomplete="off" required />
+      </label>
+      <label>
+        <span>Position</span>
+        <input name="position" autocomplete="off" required />
+      </label>
+      <label>
+        <span>Location</span>
+        <input name="location" autocomplete="off" />
+      </label>
+      <label>
+        <span>Job ID</span>
+        <input name="externalJobId" autocomplete="off" />
+      </label>
+      <label>
+        <span>Source</span>
+        <input name="source" autocomplete="off" readonly />
+      </label>
+      <div class="url" id="url-display"></div>
+      <input type="hidden" name="url" />
+      <button id="save-btn" type="submit">Save</button>
+      <div id="toast" class="toast" hidden></div>
+    </form>
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

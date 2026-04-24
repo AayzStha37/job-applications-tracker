@@ -1,0 +1,1 @@
+{"root":["./src/main.tsx","./src/types.ts","./src/api/applications.ts","./src/components/Board.tsx","./src/components/Card.tsx","./src/components/CardDetailDrawer.tsx","./src/components/Column.tsx","./src/hooks/useApplications.ts"],"version":"5.9.3"}

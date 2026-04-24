@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "Job Applications Tracker",
+  "version": "0.1.0",
+  "description": "One-click capture of job postings into your local tracker.",
+  "permissions": ["activeTab", "scripting", "storage"],
+  "host_permissions": ["http://localhost:8080/*", "http://127.0.0.1:8080/*"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Track this job"
+  }
+}
