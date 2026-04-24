@@ -1,0 +1,9 @@
+.gradle/
+build/
+out/
+data/
+*.db
+.idea/
+*.iml
+Dockerfile
+.dockerignore

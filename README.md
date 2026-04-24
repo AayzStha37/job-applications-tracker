@@ -13,13 +13,32 @@ Everything runs on `127.0.0.1`. No auth, no cloud.
 
 ## Prerequisites
 
-- Java 21
-- Node.js 20+ (tested on 22)
-- Chrome, Edge, or Brave
+- Docker + Docker Compose (recommended), **or** Java 21 + Node.js 20+ for a bare-metal run
+- Chrome, Edge, or Brave (for the extension)
 
 ---
 
-## Run it
+## Run it with Docker (recommended)
+
+From the repo root:
+
+```bash
+docker compose up --build
+```
+
+This starts:
+
+- **backend** on `http://127.0.0.1:8080` — SQLite data persists in the named volume `jobtracker-data` (`/data/jobs.db` inside the container)
+- **frontend** on `http://127.0.0.1:5173` — nginx serving the built Vite bundle
+
+Stop with `Ctrl+C`; remove the data volume with `docker compose down -v`.
+
+The browser extension is **not** containerized — extensions live in the browser.
+See [Extension](#3-extension) below.
+
+---
+
+## Run it bare-metal
 
 ### 1. Backend (`:8080`)
 
