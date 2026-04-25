@@ -12,9 +12,21 @@ const dist = resolve(root, "dist");
 await rm(dist, { recursive: true, force: true });
 await mkdir(dist, { recursive: true });
 
+// Content script — injected into the page, builds the floating button + modal
 await esbuild.build({
-  entryPoints: [resolve(root, "src/popup/popup.ts")],
-  outfile: resolve(dist, "popup.js"),
+  entryPoints: [resolve(root, "src/content/ui.ts")],
+  outfile: resolve(dist, "content-ui.js"),
+  bundle: true,
+  format: "iife",
+  target: "es2022",
+  platform: "browser",
+  sourcemap: true,
+});
+
+// Background service worker
+await esbuild.build({
+  entryPoints: [resolve(root, "src/background/service-worker.ts")],
+  outfile: resolve(dist, "service-worker.js"),
   bundle: true,
   format: "esm",
   target: "es2022",
@@ -23,8 +35,6 @@ await esbuild.build({
 });
 
 await cp(resolve(root, "manifest.json"), resolve(dist, "manifest.json"));
-await cp(resolve(root, "src/popup/popup.html"), resolve(dist, "popup.html"));
-await cp(resolve(root, "src/popup/popup.css"), resolve(dist, "popup.css"));
 
 if (existsSync(resolve(root, "icons"))) {
   await cp(resolve(root, "icons"), resolve(dist, "icons"), { recursive: true });

@@ -1,6 +1,6 @@
-import type { Application, UpdateApplicationRequest } from "../types";
+import type { Application, CreateApplicationRequest, UpdateApplicationRequest } from "../types";
 
-const BASE = "http://127.0.0.1:8080";
+const BASE = "http://127.0.0.1:8081";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
@@ -19,6 +19,13 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export function listApplications(): Promise<Application[]> {
   return request<Application[]>("/applications");
+}
+
+export function createApplication(body: CreateApplicationRequest): Promise<Application> {
+  return request<Application>("/applications", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
 }
 
 export function updateApplication(

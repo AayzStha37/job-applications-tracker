@@ -28,8 +28,8 @@ docker compose up --build
 
 This starts:
 
-- **backend** on `http://127.0.0.1:8080` — SQLite data persists in the named volume `jobtracker-data` (`/data/jobs.db` inside the container)
-- **frontend** on `http://127.0.0.1:5173` — nginx serving the built Vite bundle
+- **backend** on `http://127.0.0.1:8081` — SQLite data persists in the named volume `jobtracker-data` (`/data/jobs.db` inside the container)
+- **frontend** on `http://127.0.0.1:5172` — nginx serving the built Vite bundle
 
 Stop with `Ctrl+C`; remove the data volume with `docker compose down -v`.
 
@@ -40,7 +40,7 @@ See [Extension](#3-extension) below.
 
 ## Run it bare-metal
 
-### 1. Backend (`:8080`)
+### 1. Backend (`:8081`)
 
 ```bash
 cd backend
@@ -53,13 +53,13 @@ applies migrations from `backend/src/main/resources/db/migration/`.
 Smoke test:
 
 ```bash
-curl -X POST 127.0.0.1:8080/applications \
+curl -X POST 127.0.0.1:8081/applications \
   -H 'Content-Type: application/json' \
   -d '{"company":"Acme","position":"SWE","location":"NYC","url":"https://x.com/j/1","source":"manual","externalJobId":"1"}'
 
-curl 127.0.0.1:8080/applications
+curl 127.0.0.1:8081/applications
 
-curl -X PATCH 127.0.0.1:8080/applications/1 \
+curl -X PATCH 127.0.0.1:8081/applications/1 \
   -H 'Content-Type: application/json' \
   -d '{"status":"INTERVIEW"}'
 ```
@@ -67,7 +67,7 @@ curl -X PATCH 127.0.0.1:8080/applications/1 \
 Re-POSTing the same `(source, externalJobId)` returns `200` with the existing
 row (dedup), not a duplicate.
 
-### 2. Frontend (`:5173`)
+### 2. Frontend (`:5172`)
 
 ```bash
 cd frontend
@@ -75,7 +75,7 @@ npm install
 npm run dev
 ```
 
-Open <http://127.0.0.1:5173>. Drag cards across columns to update status.
+Open <http://127.0.0.1:5172>. Drag cards across columns to update status.
 Double-click a card to open the detail drawer for notes or deletion.
 
 ### 3. Extension

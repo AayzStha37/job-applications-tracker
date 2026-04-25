@@ -1,15 +1,26 @@
 import type { JobData } from "../shared/types";
-import { extract } from "../extractor/index";
 
-const API = "http://127.0.0.1:8080/applications";
+const API = "http://127.0.0.1:8081/applications";
+
+function getTargetTabId(): number | null {
+  const params = new URLSearchParams(window.location.search);
+  const raw = params.get("tabId");
+  return raw ? parseInt(raw, 10) : null;
+}
 
 async function runExtractor(): Promise<JobData | null> {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  if (!tab?.id) return null;
+  const tabId = getTargetTabId();
+  if (!tabId) return null;
   try {
+    // Inject the bundled content script that runs all extractors
+    await chrome.scripting.executeScript({
+      target: { tabId },
+      files: ["content.js"],
+    });
+    // Wait for the extraction (may retry on SPA pages)
     const results = await chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      func: extract,
+      target: { tabId },
+      func: () => (globalThis as any).__jobTrackerExtractedPromise,
     });
     return (results[0]?.result as JobData) ?? null;
   } catch (err) {
@@ -76,6 +87,10 @@ async function onSubmit(event: SubmitEvent) {
 }
 
 async function init() {
+  document.getElementById("close-btn")!.addEventListener("click", () => {
+    window.close();
+  });
+
   const form = document.getElementById("track-form") as HTMLFormElement;
   form.addEventListener("submit", onSubmit);
   const data = await runExtractor();

@@ -35,7 +35,7 @@ public class ApplicationService {
         entity.setSource(req.source());
         entity.setExternalJobId(req.externalJobId());
         entity.setNotes(req.notes());
-        entity.setStatus(Status.APPLIED);
+        entity.setStatus(Status.SAVED);
         ApplicationEntity saved = repository.save(entity);
         return new UpsertResult(saved, true);
     }

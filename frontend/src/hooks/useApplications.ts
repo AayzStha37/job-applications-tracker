@@ -1,10 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  createApplication,
   deleteApplication,
   listApplications,
   updateApplication,
 } from "../api/applications";
-import type { Application, UpdateApplicationRequest } from "../types";
+import type { Application, CreateApplicationRequest, UpdateApplicationRequest } from "../types";
 
 const KEY = ["applications"] as const;
 
@@ -39,6 +40,14 @@ export function useUpdateApplication() {
       if (ctx?.prev) qc.setQueryData(KEY, ctx.prev);
     },
     onSettled: () => qc.invalidateQueries({ queryKey: KEY }),
+  });
+}
+
+export function useCreateApplication() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: CreateApplicationRequest) => createApplication(body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
   });
 }
 

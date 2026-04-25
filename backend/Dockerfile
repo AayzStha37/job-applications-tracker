@@ -23,9 +23,9 @@ COPY --from=build /app.jar /app/app.jar
 
 ENV SPRING_DATASOURCE_URL=jdbc:sqlite:/data/jobs.db
 ENV SERVER_ADDRESS=0.0.0.0
-ENV SERVER_PORT=8080
+ENV SERVER_PORT=8081
 
 VOLUME ["/data"]
-EXPOSE 8080
+EXPOSE 8081
 
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]

@@ -1,10 +1,10 @@
 export const STATUSES = [
+  "SAVED",
   "APPLIED",
   "SCREEN",
   "INTERVIEW",
   "OFFER",
   "REJECTED",
-  "WITHDRAWN",
 ] as const;
 
 export type Status = (typeof STATUSES)[number];
@@ -21,6 +21,16 @@ export interface Application {
   notes: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CreateApplicationRequest {
+  company: string;
+  position: string;
+  location?: string;
+  url: string;
+  source: string;
+  externalJobId?: string;
+  notes?: string;
 }
 
 export interface UpdateApplicationRequest {

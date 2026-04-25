@@ -9,12 +9,12 @@ interface Props {
 }
 
 const LABELS: Record<Status, string> = {
+  SAVED: "Saved",
   APPLIED: "Applied",
   SCREEN: "Screen",
   INTERVIEW: "Interview",
   OFFER: "Offer",
   REJECTED: "Rejected",
-  WITHDRAWN: "Withdrawn",
 };
 
 export function Column({ status, applications, onOpen }: Props) {

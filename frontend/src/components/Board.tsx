@@ -16,7 +16,7 @@ export function Board() {
 
   const grouped = useMemo(() => {
     const out: Record<Status, Application[]> = {
-      APPLIED: [], SCREEN: [], INTERVIEW: [], OFFER: [], REJECTED: [], WITHDRAWN: [],
+      SAVED: [], APPLIED: [], SCREEN: [], INTERVIEW: [], OFFER: [], REJECTED: [],
     };
     for (const a of data ?? []) out[a.status].push(a);
     return out;
