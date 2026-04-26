@@ -34,7 +34,19 @@ await esbuild.build({
   sourcemap: true,
 });
 
+// Options page
+await esbuild.build({
+  entryPoints: [resolve(root, "src/options/options.ts")],
+  outfile: resolve(dist, "options.js"),
+  bundle: true,
+  format: "iife",
+  target: "es2022",
+  platform: "browser",
+  sourcemap: true,
+});
+
 await cp(resolve(root, "manifest.json"), resolve(dist, "manifest.json"));
+await cp(resolve(root, "src/options/options.html"), resolve(dist, "options.html"));
 
 if (existsSync(resolve(root, "icons"))) {
   await cp(resolve(root, "icons"), resolve(dist, "icons"), { recursive: true });

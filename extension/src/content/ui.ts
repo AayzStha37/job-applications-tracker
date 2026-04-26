@@ -1,4 +1,5 @@
 import type { JobData } from "../shared/types";
+import { cleanUrl } from "../shared/url";
 import { extract } from "../extractor/index";
 
 const NS = "jt-tracker";
@@ -28,6 +29,54 @@ async function extractWithRetry(): Promise<JobData> {
     if (!isSparse(retry)) return retry;
   }
   return first;
+}
+
+/** Collect page text + metadata for LLM extraction. */
+function collectPageText(): string {
+  const parts: string[] = [];
+
+  // Meta tags (og:title, description, etc.)
+  document.querySelectorAll("meta[property], meta[name]").forEach((el) => {
+    const key = el.getAttribute("property") || el.getAttribute("name");
+    const val = el.getAttribute("content");
+    if (key && val) parts.push(`${key}: ${val}`);
+  });
+
+  // JSON-LD structured data
+  document.querySelectorAll('script[type="application/ld+json"]').forEach((el) => {
+    if (el.textContent) parts.push(el.textContent);
+  });
+
+  // Visible page text (truncated to keep token usage low)
+  parts.push(document.body.innerText.substring(0, 4000));
+
+  return parts.join("\n");
+}
+
+/** Ask the service worker to run LLM extraction. Returns null if unavailable. */
+function extractViaLLM(): Promise<JobData | null> {
+  const pageText = collectPageText();
+  const pageUrl = location.href;
+
+  return new Promise((resolve) => {
+    chrome.runtime.sendMessage(
+      { type: "EXTRACT_VIA_LLM", pageText, pageUrl },
+      (response) => {
+        if (response?.data) {
+          resolve({
+            company: response.data.company || "",
+            position: response.data.position || "",
+            location: response.data.location || "",
+            externalJobId: response.data.externalJobId || "",
+            url: cleanUrl(),
+            source: location.hostname.replace(/^www\./, ""),
+          });
+        } else {
+          resolve(null);
+        }
+      },
+    );
+  });
 }
 
 /** Route API call through the background service worker to avoid CORS. */
@@ -212,6 +261,20 @@ function getStyles(): string {
     .toast.success { background: #e3fcef; color: #006644; }
     .toast.warn    { background: #fffae6; color: #974f00; }
     .toast.error   { background: #ffebe6; color: #bf2600; }
+
+    .title.loading::after {
+      content: '';
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border: 2px solid #dfe1e6;
+      border-top-color: #0052cc;
+      border-radius: 50%;
+      margin-left: 8px;
+      vertical-align: middle;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
   `;
 }
 
@@ -385,6 +448,8 @@ function init() {
 
   // ── Event listeners ────────────────────────────────────────────────
 
+  const titleEl = panel.querySelector(".title") as HTMLDivElement;
+
   fab.addEventListener("click", async (e: MouseEvent) => {
     if (wasDragged) { e.preventDefault(); return; }
 
@@ -392,7 +457,19 @@ function init() {
       closePanel();
     } else {
       openPanel();
-      const data = await extractWithRetry();
+
+      // Show loading state
+      titleEl.textContent = "Extracting\u2026";
+      titleEl.classList.add("loading");
+
+      // Try LLM first, fall back to DOM scraping
+      let data = await extractViaLLM();
+      if (!data || isSparse(data)) {
+        data = await extractWithRetry();
+      }
+
+      titleEl.textContent = "Track Job";
+      titleEl.classList.remove("loading");
       fillForm(form, data);
     }
   });

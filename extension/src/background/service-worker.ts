@@ -1,3 +1,5 @@
+import { extractViaGemini, testApiKey } from "../llm/gemini";
+
 const API = "http://127.0.0.1:8081/applications";
 
 // Handle API requests from content scripts (avoids CORS issues)
@@ -15,7 +17,21 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
       .catch((err) => {
         sendResponse({ error: (err as Error).message });
       });
-    return true; // keep the message channel open for async response
+    return true;
+  }
+
+  if (msg.type === "EXTRACT_VIA_LLM") {
+    extractViaGemini(msg.pageText, msg.pageUrl)
+      .then((data) => sendResponse({ data }))
+      .catch((err) => sendResponse({ error: (err as Error).message }));
+    return true;
+  }
+
+  if (msg.type === "TEST_API_KEY") {
+    testApiKey(msg.apiKey)
+      .then((result) => sendResponse(result))
+      .catch((err) => sendResponse({ ok: false, error: (err as Error).message }));
+    return true;
   }
 });
 

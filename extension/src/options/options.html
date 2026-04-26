@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>JobTrack Settings</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0a0a0a;
+      color: #f0f0f0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 60px 20px;
+    }
+    .container {
+      width: 420px;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+    .header img {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+    }
+    .header h1 {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+    .section {
+      background: #141414;
+      border: 1px solid #2a2a2a;
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .section h2 {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: #a3a3a3;
+      margin-bottom: 14px;
+    }
+    label {
+      display: block;
+      font-size: 12px;
+      color: #6b6b6b;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .input-wrap {
+      position: relative;
+      margin-bottom: 14px;
+    }
+    input {
+      width: 100%;
+      padding: 9px 40px 9px 12px;
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      color: #f0f0f0;
+      font-size: 13px;
+      font-family: inherit;
+      transition: border-color 0.15s;
+    }
+    input:focus {
+      outline: none;
+      border-color: #eab308;
+      box-shadow: 0 0 0 3px rgba(234,179,8,0.15);
+    }
+    .toggle-vis {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #6b6b6b;
+      cursor: pointer;
+      font-size: 13px;
+      padding: 4px;
+    }
+    .toggle-vis:hover { color: #a3a3a3; }
+    .actions {
+      display: flex;
+      gap: 10px;
+    }
+    button.primary {
+      padding: 8px 18px;
+      background: #eab308;
+      color: #0a0a0a;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    button.primary:hover { background: #ca8a04; }
+    button.secondary {
+      padding: 8px 18px;
+      background: #1a1a1a;
+      color: #a3a3a3;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    button.secondary:hover { background: #252525; }
+    .status {
+      margin-top: 12px;
+      font-size: 12px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      display: none;
+    }
+    .status.success { display: block; background: rgba(34,197,94,0.1); color: #22c55e; }
+    .status.error { display: block; background: rgba(239,68,68,0.1); color: #ef4444; }
+    .hint {
+      margin-top: 14px;
+      font-size: 11px;
+      color: #6b6b6b;
+      line-height: 1.5;
+    }
+    .hint a { color: #eab308; text-decoration: none; }
+    .hint a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="icons/icon48.png" alt="JobTrack" />
+      <h1>JobTrack Settings</h1>
+    </div>
+    <div class="section">
+      <h2>Gemini API Key</h2>
+      <label for="apiKey">API Key</label>
+      <div class="input-wrap">
+        <input type="password" id="apiKey" placeholder="Enter your Gemini API key" spellcheck="false" />
+        <button class="toggle-vis" id="toggleVis" type="button">Show</button>
+      </div>
+      <div class="actions">
+        <button class="primary" id="saveBtn">Save</button>
+        <button class="secondary" id="testBtn">Test Key</button>
+      </div>
+      <div class="status" id="status"></div>
+      <div class="hint">
+        Get a free API key from <a href="https://aistudio.google.com/apikey" target="_blank" rel="noreferrer">Google AI Studio</a>.
+        The key is stored locally in this browser and never sent anywhere except Google's Gemini API.
+      </div>
+    </div>
+  </div>
+  <script src="options.js"></script>
+</body>
+</html>
