@@ -47,6 +47,17 @@ public class ApplicationController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @PatchMapping("/{id}/tailor-status")
+    public ResponseEntity<ApplicationDtos.Response> updateTailorStatus(
+            @PathVariable Long id,
+            @RequestBody ApplicationDtos.TailorStatusUpdate req
+    ) {
+        return service.updateTailorStatus(id, req)
+                .map(ApplicationDtos.Response::from)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         return service.delete(id)

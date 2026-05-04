@@ -19,6 +19,11 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
 
+cv-resume:
+  # Filesystem path to the sibling cv-resume repo. Backend writes JD markdown
+  # files to <path>/jobs/inbox/ on each create. Override via CV_RESUME_PATH env.
+  path: ${CV_RESUME_PATH:../../cv-resume}
+
 logging:
   level:
     org.hibernate.SQL: info

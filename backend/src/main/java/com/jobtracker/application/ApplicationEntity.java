@@ -44,6 +44,25 @@ public class ApplicationEntity {
 
     private String notes;
 
+    @Column(name = "job_description")
+    private String jobDescription;
+
+    @Column(name = "loc_code")
+    private String locCode;
+
+    @Column(name = "mail_alias", nullable = false)
+    private String mailAlias = "email1";
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tailor_status", nullable = false)
+    private TailorStatus tailorStatus = TailorStatus.PENDING;
+
+    @Column(name = "tailored_cv_path")
+    private String tailoredCvPath;
+
+    @Column(name = "tailor_error")
+    private String tailorError;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -56,6 +75,8 @@ public class ApplicationEntity {
         if (createdAt == null) createdAt = now;
         updatedAt = now;
         if (status == null) status = Status.APPLIED;
+        if (mailAlias == null) mailAlias = "email1";
+        if (tailorStatus == null) tailorStatus = TailorStatus.PENDING;
     }
 
     @PreUpdate
@@ -80,6 +101,18 @@ public class ApplicationEntity {
     public void setStatus(Status status) { this.status = status; }
     public String getNotes() { return notes; }
     public void setNotes(String notes) { this.notes = notes; }
+    public String getJobDescription() { return jobDescription; }
+    public void setJobDescription(String jobDescription) { this.jobDescription = jobDescription; }
+    public String getLocCode() { return locCode; }
+    public void setLocCode(String locCode) { this.locCode = locCode; }
+    public String getMailAlias() { return mailAlias; }
+    public void setMailAlias(String mailAlias) { this.mailAlias = mailAlias; }
+    public TailorStatus getTailorStatus() { return tailorStatus; }
+    public void setTailorStatus(TailorStatus tailorStatus) { this.tailorStatus = tailorStatus; }
+    public String getTailoredCvPath() { return tailoredCvPath; }
+    public void setTailoredCvPath(String tailoredCvPath) { this.tailoredCvPath = tailoredCvPath; }
+    public String getTailorError() { return tailorError; }
+    public void setTailorError(String tailorError) { this.tailorError = tailorError; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 }

@@ -1,6 +1,7 @@
-import type { JobData } from "../shared/types";
+import type { JobData, CreatePayload, LocCode, MailAlias } from "../shared/types";
 import { cleanUrl } from "../shared/url";
 import { extract } from "../extractor/index";
+import { resolveLocCode } from "../shared/loc-mapping";
 
 const NS = "jt-tracker";
 
@@ -31,6 +32,24 @@ async function extractWithRetry(): Promise<JobData> {
   return first;
 }
 
+/** Pick the densest job-content container; fall back to body. */
+function pickJobContentRoot(): Element {
+  const candidates = [
+    "#jobDescriptionText",
+    '[data-automation-id="jobPostingDescription"]',
+    '[data-test="jobDescriptionContent"]',
+    ".jobs-description__content",
+    ".show-more-less-html__markup",
+    "article",
+    "main",
+  ];
+  for (const sel of candidates) {
+    const el = document.querySelector(sel);
+    if (el && (el.textContent?.length ?? 0) > 400) return el;
+  }
+  return document.body;
+}
+
 /** Collect page text + metadata for LLM extraction. */
 function collectPageText(): string {
   const parts: string[] = [];
@@ -42,13 +61,15 @@ function collectPageText(): string {
     if (key && val) parts.push(`${key}: ${val}`);
   });
 
-  // JSON-LD structured data
+  // JSON-LD structured data — keep this in full; it often contains the JD body verbatim
   document.querySelectorAll('script[type="application/ld+json"]').forEach((el) => {
     if (el.textContent) parts.push(el.textContent);
   });
 
-  // Visible page text (truncated to keep token usage low)
-  parts.push(document.body.innerText.substring(0, 4000));
+  // Page text — prefer the densest job-description container so Gemini sees the JD body
+  // unpolluted by site chrome. Cap at ~24KB which fits comfortably in flash-lite's input.
+  const root = pickJobContentRoot();
+  parts.push((root as HTMLElement).innerText.substring(0, 24_000));
 
   return parts.join("\n");
 }
@@ -63,6 +84,8 @@ function extractViaLLM(): Promise<JobData | null> {
       { type: "EXTRACT_VIA_LLM", pageText, pageUrl },
       (response) => {
         if (response?.data) {
+          // LLM rarely returns the JD body — pull it from DOM extractors as a side channel.
+          const fromDom = extract();
           resolve({
             company: response.data.company || "",
             position: response.data.position || "",
@@ -70,6 +93,7 @@ function extractViaLLM(): Promise<JobData | null> {
             externalJobId: response.data.externalJobId || "",
             url: cleanUrl(),
             source: location.hostname.replace(/^www\./, ""),
+            jobDescription: response.data.jobDescription || fromDom.jobDescription || "",
           });
         } else {
           resolve(null);
@@ -80,7 +104,7 @@ function extractViaLLM(): Promise<JobData | null> {
 }
 
 /** Route API call through the background service worker to avoid CORS. */
-function saveJob(payload: Record<string, string>): Promise<{ status: number; statusText: string; body: any; error?: string }> {
+function saveJob(payload: CreatePayload): Promise<{ status: number; statusText: string; body: any; error?: string }> {
   return new Promise((resolve) => {
     chrome.runtime.sendMessage({ type: "SAVE_JOB", payload }, resolve);
   });
@@ -176,7 +200,7 @@ function getStyles(): string {
     .panel {
       position: fixed;
       z-index: 2147483646;
-      width: 370px;
+      width: 420px;
       background: #fff;
       border-radius: 12px;
       box-shadow: 0 12px 40px rgba(0,0,0,0.25);
@@ -216,7 +240,7 @@ function getStyles(): string {
       font-weight: 500;
     }
 
-    input {
+    input, select, textarea {
       font: inherit;
       padding: 6px 8px;
       border: 1px solid #dfe1e6;
@@ -226,8 +250,20 @@ function getStyles(): string {
       width: 100%;
       background: #fff;
     }
-    input:focus { outline: 2px solid #0052cc; outline-offset: -1px; border-color: transparent; }
+    textarea {
+      resize: vertical;
+      min-height: 90px;
+      max-height: 240px;
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+      font-size: 12px;
+    }
+    input:focus, select:focus, textarea:focus { outline: 2px solid #0052cc; outline-offset: -1px; border-color: transparent; }
     input[readonly] { background: #f4f5f7; color: #6b778c; }
+
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .hint { font-style: normal; text-transform: none; letter-spacing: 0; color: #97a0af; font-size: 10px; margin-left: 6px; font-weight: 400; }
+    .hint.warn { color: #974f00; }
+    label > span { display: flex; align-items: baseline; }
 
     .url {
       font-size: 11px;
@@ -323,8 +359,32 @@ function buildUI(shadow: ShadowRoot) {
     <label><span>Company</span><input name="company" autocomplete="off" required /></label>
     <label><span>Position</span><input name="position" autocomplete="off" required /></label>
     <label><span>Location</span><input name="location" autocomplete="off" /></label>
+    <div class="row">
+      <label>
+        <span>LOC <em id="loc-hint" class="hint"></em></span>
+        <select name="locCode">
+          <option value="">— pick —</option>
+          <option value="HFX">HFX (Halifax)</option>
+          <option value="TO">TO (Toronto)</option>
+          <option value="OW">OW (Ottawa)</option>
+          <option value="MO">MO (Montreal)</option>
+          <option value="VC">VC (Vancouver)</option>
+        </select>
+      </label>
+      <label>
+        <span>MAIL</span>
+        <select name="mailAlias">
+          <option value="email1">email1</option>
+          <option value="email2">email2</option>
+        </select>
+      </label>
+    </div>
     <label><span>Job ID</span><input name="externalJobId" autocomplete="off" /></label>
     <label><span>Source</span><input name="source" autocomplete="off" readonly /></label>
+    <label>
+      <span>JD <em id="jd-len" class="hint"></em></span>
+      <textarea name="jobDescription" rows="6" placeholder="Job description (markdown). Edit if scraping was sparse."></textarea>
+    </label>
     <div class="url" id="url-display"></div>
     <input type="hidden" name="url" />
     <button class="save-btn" type="submit">Save</button>
@@ -480,13 +540,20 @@ function init() {
     e.preventDefault();
     const btn = form.querySelector(".save-btn") as HTMLButtonElement;
     const payload = readForm(form);
+    if (!payload.locCode) {
+      showToast(shadow, "warn", "Pick a LOC before saving (or location won't map for /tailor).");
+      return;
+    }
     btn.disabled = true;
     try {
       const res = await saveJob(payload);
       if (res.error) {
         showToast(shadow, "error", `Network error: ${res.error}`);
       } else if (res.status === 201) {
-        showToast(shadow, "success", "Tracked!");
+        const msg = payload.jobDescription
+          ? "Tracked + queued for tailor."
+          : "Tracked (no JD \u2014 won't tailor).";
+        showToast(shadow, "success", msg);
       } else if (res.status === 200) {
         showToast(shadow, "warn", `Already tracked \u2014 status: ${res.body?.status}`);
       } else {
@@ -507,12 +574,46 @@ function fillForm(form: HTMLFormElement, data: JobData) {
   (form.elements.namedItem("externalJobId") as HTMLInputElement).value = data.externalJobId;
   (form.elements.namedItem("source") as HTMLInputElement).value = data.source;
   (form.elements.namedItem("url") as HTMLInputElement).value = data.url;
+  (form.elements.namedItem("jobDescription") as HTMLTextAreaElement).value = data.jobDescription;
   const urlDisplay = form.querySelector("#url-display");
   if (urlDisplay) urlDisplay.textContent = data.url;
+
+  const mapped = resolveLocCode(data.location);
+  const locSelect = form.elements.namedItem("locCode") as HTMLSelectElement;
+  const locHint = form.querySelector("#loc-hint") as HTMLElement | null;
+  if (mapped) {
+    locSelect.value = mapped;
+    if (locHint) {
+      locHint.textContent = `auto: ${data.location}`;
+      locHint.classList.remove("warn");
+    }
+  } else {
+    locSelect.value = "";
+    if (locHint) {
+      locHint.textContent = data.location ? "couldn't map — pick one" : "no location detected";
+      locHint.classList.add("warn");
+    }
+  }
+  (form.elements.namedItem("mailAlias") as HTMLSelectElement).value = "email1";
+
+  updateJdHint(form);
+  const jdEl = form.elements.namedItem("jobDescription") as HTMLTextAreaElement;
+  jdEl.addEventListener("input", () => updateJdHint(form), { once: false });
 }
 
-function readForm(form: HTMLFormElement) {
+function updateJdHint(form: HTMLFormElement) {
+  const ta = form.elements.namedItem("jobDescription") as HTMLTextAreaElement;
+  const hint = form.querySelector("#jd-len") as HTMLElement | null;
+  if (!hint) return;
+  const n = ta.value.length;
+  hint.textContent = n ? `${n.toLocaleString()} chars` : "empty — paste or scrape failed";
+  hint.classList.toggle("warn", n < 200);
+}
+
+function readForm(form: HTMLFormElement): CreatePayload {
   const fd = new FormData(form);
+  const locCode = String(fd.get("locCode") ?? "") as LocCode | "";
+  const mailAlias = (String(fd.get("mailAlias") ?? "email1") || "email1") as MailAlias;
   return {
     company: String(fd.get("company") ?? "").trim(),
     position: String(fd.get("position") ?? "").trim(),
@@ -520,6 +621,9 @@ function readForm(form: HTMLFormElement) {
     externalJobId: String(fd.get("externalJobId") ?? "").trim(),
     source: String(fd.get("source") ?? "").trim(),
     url: String(fd.get("url") ?? "").trim(),
+    jobDescription: String(fd.get("jobDescription") ?? "").trim(),
+    locCode,
+    mailAlias,
   };
 }
 

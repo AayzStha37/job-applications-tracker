@@ -1,4 +1,5 @@
 import type { JobData } from "../../shared/types";
+import { htmlToMarkdown } from "../../shared/html-to-markdown";
 
 function asArray<T>(v: T | T[] | undefined): T[] {
   if (v == null) return [];
@@ -58,11 +59,13 @@ export function fromJsonLd(): Partial<JobData> {
         const job = findJobPosting(node);
         if (!job) continue;
         const org = job.hiringOrganization as Record<string, unknown> | undefined;
+        const desc = typeof job.description === "string" ? job.description : "";
         return {
           company: typeof org?.name === "string" ? org.name : "",
           position: typeof job.title === "string" ? job.title : "",
           location: readLocation(job),
           externalJobId: readIdentifier(job),
+          jobDescription: desc ? htmlToMarkdown(desc) : "",
         };
       }
     } catch {

@@ -10,9 +10,11 @@ import java.util.Optional;
 public class ApplicationService {
 
     private final ApplicationRepository repository;
+    private final TailorQueueService tailorQueue;
 
-    public ApplicationService(ApplicationRepository repository) {
+    public ApplicationService(ApplicationRepository repository, TailorQueueService tailorQueue) {
         this.repository = repository;
+        this.tailorQueue = tailorQueue;
     }
 
     public record UpsertResult(ApplicationEntity entity, boolean created) {}
@@ -35,8 +37,15 @@ public class ApplicationService {
         entity.setSource(req.source());
         entity.setExternalJobId(req.externalJobId());
         entity.setNotes(req.notes());
+        entity.setJobDescription(req.jobDescription());
+        entity.setLocCode(req.locCode());
+        entity.setMailAlias(req.mailAlias() == null || req.mailAlias().isBlank() ? "email1" : req.mailAlias());
         entity.setStatus(Status.SAVED);
         ApplicationEntity saved = repository.save(entity);
+        // saved.getId() is now set; flush to inbox
+        TailorQueueService.Outcome outcome = tailorQueue.enqueue(saved);
+        saved.setTailorStatus(outcome.status());
+        if (outcome.error() != null) saved.setTailorError(outcome.error());
         return new UpsertResult(saved, true);
     }
 
@@ -50,6 +59,17 @@ public class ApplicationService {
         return repository.findById(id).map(e -> {
             if (req.status() != null) e.setStatus(req.status());
             if (req.notes() != null) e.setNotes(req.notes());
+            return e;
+        });
+    }
+
+    @Transactional
+    public Optional<ApplicationEntity> updateTailorStatus(Long id, ApplicationDtos.TailorStatusUpdate req) {
+        return repository.findById(id).map(e -> {
+            if (req.status() != null) e.setTailorStatus(req.status());
+            if (req.tailoredCvPath() != null) e.setTailoredCvPath(req.tailoredCvPath());
+            // null `error` is allowed to clear it on success transition; treat empty string the same way
+            e.setTailorError(req.error() == null || req.error().isBlank() ? null : req.error());
             return e;
         });
     }

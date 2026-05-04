@@ -36,5 +36,6 @@ export function extract(): JobData {
     externalJobId: merged.externalJobId ?? "",
     url: cleanUrl(),
     source: host,
+    jobDescription: merged.jobDescription ?? "",
   };
 }

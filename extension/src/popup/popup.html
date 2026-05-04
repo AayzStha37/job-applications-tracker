@@ -20,6 +20,26 @@
         <span>Location</span>
         <input name="location" autocomplete="off" />
       </label>
+      <div class="row">
+        <label>
+          <span>LOC <em id="loc-hint" class="hint"></em></span>
+          <select name="locCode">
+            <option value="">— pick —</option>
+            <option value="HFX">HFX (Halifax)</option>
+            <option value="TO">TO (Toronto)</option>
+            <option value="OW">OW (Ottawa)</option>
+            <option value="MO">MO (Montreal)</option>
+            <option value="VC">VC (Vancouver)</option>
+          </select>
+        </label>
+        <label>
+          <span>MAIL</span>
+          <select name="mailAlias">
+            <option value="email1">email1</option>
+            <option value="email2">email2</option>
+          </select>
+        </label>
+      </div>
       <label>
         <span>Job ID</span>
         <input name="externalJobId" autocomplete="off" />
@@ -27,6 +47,10 @@
       <label>
         <span>Source</span>
         <input name="source" autocomplete="off" readonly />
+      </label>
+      <label>
+        <span>JD <em id="jd-len" class="hint"></em></span>
+        <textarea name="jobDescription" rows="6" placeholder="Job description (markdown). Edit if scraping was sparse."></textarea>
       </label>
       <div class="url" id="url-display"></div>
       <input type="hidden" name="url" />

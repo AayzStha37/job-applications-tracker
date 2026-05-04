@@ -1,4 +1,5 @@
-import type { JobData } from "../shared/types";
+import type { CreatePayload, JobData, LocCode, MailAlias } from "../shared/types";
+import { resolveLocCode } from "../shared/loc-mapping";
 
 const API = "http://127.0.0.1:8081/applications";
 
@@ -12,12 +13,10 @@ async function runExtractor(): Promise<JobData | null> {
   const tabId = getTargetTabId();
   if (!tabId) return null;
   try {
-    // Inject the bundled content script that runs all extractors
     await chrome.scripting.executeScript({
       target: { tabId },
       files: ["content.js"],
     });
-    // Wait for the extraction (may retry on SPA pages)
     const results = await chrome.scripting.executeScript({
       target: { tabId },
       func: () => (globalThis as any).__jobTrackerExtractedPromise,
@@ -29,26 +28,56 @@ async function runExtractor(): Promise<JobData | null> {
   }
 }
 
+function el<T extends HTMLElement>(form: HTMLFormElement, name: string): T {
+  return form.elements.namedItem(name) as T;
+}
+
 function fill(form: HTMLFormElement, data: JobData) {
-  (form.elements.namedItem("company") as HTMLInputElement).value = data.company;
-  (form.elements.namedItem("position") as HTMLInputElement).value = data.position;
-  (form.elements.namedItem("location") as HTMLInputElement).value = data.location;
-  (form.elements.namedItem("externalJobId") as HTMLInputElement).value =
-    data.externalJobId;
-  (form.elements.namedItem("source") as HTMLInputElement).value = data.source;
-  (form.elements.namedItem("url") as HTMLInputElement).value = data.url;
+  el<HTMLInputElement>(form, "company").value = data.company;
+  el<HTMLInputElement>(form, "position").value = data.position;
+  el<HTMLInputElement>(form, "location").value = data.location;
+  el<HTMLInputElement>(form, "externalJobId").value = data.externalJobId;
+  el<HTMLInputElement>(form, "source").value = data.source;
+  el<HTMLInputElement>(form, "url").value = data.url;
+  el<HTMLTextAreaElement>(form, "jobDescription").value = data.jobDescription;
   document.getElementById("url-display")!.textContent = data.url;
+
+  const mapped = resolveLocCode(data.location);
+  const locSelect = el<HTMLSelectElement>(form, "locCode");
+  const locHint = document.getElementById("loc-hint")!;
+  if (mapped) {
+    locSelect.value = mapped;
+    locHint.textContent = `auto: ${data.location}`;
+    locHint.classList.remove("warn");
+  } else {
+    locSelect.value = "";
+    locHint.textContent = data.location ? "couldn't map — pick one" : "no location detected";
+    locHint.classList.add("warn");
+  }
+
+  el<HTMLSelectElement>(form, "mailAlias").value = "email1";
+  updateJdHint(form);
+}
+
+function updateJdHint(form: HTMLFormElement) {
+  const ta = el<HTMLTextAreaElement>(form, "jobDescription");
+  const hint = document.getElementById("jd-len")!;
+  const n = ta.value.length;
+  hint.textContent = n ? `${n.toLocaleString()} chars` : "empty — paste or scrape failed";
+  hint.classList.toggle("warn", n < 200);
 }
 
 function showToast(kind: "success" | "warn" | "error", msg: string) {
-  const el = document.getElementById("toast")!;
-  el.className = `toast ${kind}`;
-  el.textContent = msg;
-  el.hidden = false;
+  const t = document.getElementById("toast")!;
+  t.className = `toast ${kind}`;
+  t.textContent = msg;
+  t.hidden = false;
 }
 
-function readForm(form: HTMLFormElement): Omit<JobData, never> & { notes?: string } {
+function readForm(form: HTMLFormElement): CreatePayload {
   const fd = new FormData(form);
+  const locCode = String(fd.get("locCode") ?? "") as LocCode | "";
+  const mailAlias = (String(fd.get("mailAlias") ?? "email1") || "email1") as MailAlias;
   return {
     company: String(fd.get("company") ?? "").trim(),
     position: String(fd.get("position") ?? "").trim(),
@@ -56,6 +85,9 @@ function readForm(form: HTMLFormElement): Omit<JobData, never> & { notes?: strin
     externalJobId: String(fd.get("externalJobId") ?? "").trim(),
     source: String(fd.get("source") ?? "").trim(),
     url: String(fd.get("url") ?? "").trim(),
+    jobDescription: String(fd.get("jobDescription") ?? "").trim(),
+    locCode,
+    mailAlias,
   };
 }
 
@@ -64,6 +96,12 @@ async function onSubmit(event: SubmitEvent) {
   const form = event.currentTarget as HTMLFormElement;
   const btn = document.getElementById("save-btn") as HTMLButtonElement;
   const payload = readForm(form);
+
+  if (!payload.locCode) {
+    showToast("warn", "Pick a LOC before saving (or location won't map for /tailor).");
+    return;
+  }
+
   btn.disabled = true;
   try {
     const res = await fetch(API, {
@@ -72,7 +110,7 @@ async function onSubmit(event: SubmitEvent) {
       body: JSON.stringify(payload),
     });
     if (res.status === 201) {
-      showToast("success", "Tracked.");
+      showToast("success", payload.jobDescription ? "Tracked + queued for tailor." : "Tracked (no JD — won't tailor).");
     } else if (res.status === 200) {
       const body = (await res.json()) as { status: string };
       showToast("warn", `Already tracked — status: ${body.status}`);
@@ -87,12 +125,12 @@ async function onSubmit(event: SubmitEvent) {
 }
 
 async function init() {
-  document.getElementById("close-btn")!.addEventListener("click", () => {
-    window.close();
-  });
+  document.getElementById("close-btn")!.addEventListener("click", () => window.close());
 
   const form = document.getElementById("track-form") as HTMLFormElement;
   form.addEventListener("submit", onSubmit);
+  el<HTMLTextAreaElement>(form, "jobDescription").addEventListener("input", () => updateJdHint(form));
+
   const data = await runExtractor();
   if (!data) {
     showToast("error", "Could not read page. Fill fields manually.");

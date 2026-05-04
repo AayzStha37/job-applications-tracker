@@ -1,4 +1,5 @@
 import type { JobData } from "../../shared/types";
+import { elementToMarkdown } from "../../shared/html-to-markdown";
 
 function text(sel: string): string {
   return document.querySelector(sel)?.textContent?.trim() ?? "";
@@ -7,6 +8,9 @@ function text(sel: string): string {
 export function fromIndeed(): Partial<JobData> {
   if (!location.hostname.includes("indeed.")) return {};
   const jk = new URLSearchParams(location.search).get("jk") ?? "";
+  const descEl =
+    document.querySelector("#jobDescriptionText") ||
+    document.querySelector('[data-testid="jobDescriptionText"]');
   return {
     position:
       text("h1.jobsearch-JobInfoHeader-title") ||
@@ -19,5 +23,6 @@ export function fromIndeed(): Partial<JobData> {
       text('[data-testid="inlineHeader-companyLocation"]') ||
       text(".jobsearch-JobInfoHeader-subtitle > div:last-child"),
     externalJobId: jk,
+    jobDescription: elementToMarkdown(descEl),
   };
 }

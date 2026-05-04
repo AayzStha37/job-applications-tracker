@@ -27,6 +27,12 @@ export function CardDetailDrawer({ application, onClose }: Props) {
     del.mutate(application.id, { onSuccess: onClose });
   }
 
+  function copyTexPath() {
+    if (application.tailoredCvPath) {
+      navigator.clipboard.writeText(application.tailoredCvPath).catch(() => {});
+    }
+  }
+
   return (
     <div className="drawer-overlay" onClick={onClose}>
       <div className="drawer" onClick={(e) => e.stopPropagation()}>
@@ -42,6 +48,25 @@ export function CardDetailDrawer({ application, onClose }: Props) {
             <dt>External ID</dt><dd>{application.externalJobId ?? "—"}</dd>
             <dt>URL</dt><dd><a href={application.url} target="_blank" rel="noreferrer">{application.url}</a></dd>
             <dt>Status</dt><dd>{application.status}</dd>
+            <dt>LOC / MAIL</dt><dd>{application.locCode ?? "—"} / {application.mailAlias ?? "—"}</dd>
+            <dt>Tailor</dt>
+            <dd>
+              <span className={`tailor-badge tailor-${application.tailorStatus.toLowerCase()}`}>
+                {application.tailorStatus}
+              </span>
+              {application.tailorError && (
+                <div className="tailor-error">{application.tailorError}</div>
+              )}
+            </dd>
+            {application.tailoredCvPath && (
+              <>
+                <dt>Tex path</dt>
+                <dd>
+                  <code className="tex-path">{application.tailoredCvPath}</code>
+                  <button className="copy-btn" onClick={copyTexPath} type="button">copy</button>
+                </dd>
+              </>
+            )}
             <dt>Created</dt><dd>{new Date(application.createdAt).toLocaleString()}</dd>
             <dt>Updated</dt><dd>{new Date(application.updatedAt).toLocaleString()}</dd>
           </dl>

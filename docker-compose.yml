@@ -8,10 +8,13 @@ services:
       - "127.0.0.1:8081:8081"
     volumes:
       - jobtracker-data:/data
+      # Sibling cv-resume repo — backend writes JD .md files into /cv-resume/jobs/inbox
+      - ../cv-resume:/cv-resume
     environment:
       SPRING_DATASOURCE_URL: jdbc:sqlite:/data/jobs.db
       SERVER_ADDRESS: 0.0.0.0
       SERVER_PORT: 8081
+      CV_RESUME_PATH: /cv-resume
 
   frontend:
     build:

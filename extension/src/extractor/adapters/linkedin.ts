@@ -1,4 +1,5 @@
 import type { JobData } from "../../shared/types";
+import { elementToMarkdown } from "../../shared/html-to-markdown";
 
 function idFromUrl(): string {
   const viewMatch = location.pathname.match(/\/jobs\/view\/(\d+)/);
@@ -67,10 +68,20 @@ function parseTitle(raw: string): { position: string; company: string; location:
   return { position: title, company: "", location: "" };
 }
 
+function descriptionMd(): string {
+  const el =
+    document.querySelector(".jobs-description__content .jobs-box__html-content") ||
+    document.querySelector(".jobs-description__content") ||
+    document.querySelector(".show-more-less-html__markup") ||
+    document.querySelector(".description__text");
+  return elementToMarkdown(el);
+}
+
 export function fromLinkedIn(): Partial<JobData> {
   if (!location.hostname.endsWith("linkedin.com")) return {};
 
   const externalJobId = idFromUrl();
+  const jobDescription = descriptionMd();
 
   // Try DOM selectors (multiple generations of LinkedIn class names)
   const domPosition =
@@ -93,7 +104,7 @@ export function fromLinkedIn(): Partial<JobData> {
 
   // If DOM selectors found real data, use them
   if (domPosition && domCompany && domCompany.toLowerCase() !== "linkedin") {
-    return { position: domPosition, company: domCompany, location: domLocation, externalJobId };
+    return { position: domPosition, company: domCompany, location: domLocation, externalJobId, jobDescription };
   }
 
   // Fallback: parse og:title or document.title (reliable across LinkedIn redesigns)
@@ -110,5 +121,6 @@ export function fromLinkedIn(): Partial<JobData> {
       fromDoc.company,
     location: domLocation || fromOg.location || fromDoc.location,
     externalJobId,
+    jobDescription,
   };
 }

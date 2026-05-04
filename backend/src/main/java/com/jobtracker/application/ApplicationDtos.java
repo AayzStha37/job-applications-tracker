@@ -13,12 +13,21 @@ public class ApplicationDtos {
             @NotBlank String url,
             @NotBlank String source,
             String externalJobId,
-            String notes
+            String notes,
+            String jobDescription,
+            String locCode,
+            String mailAlias
     ) {}
 
     public record UpdateRequest(
             Status status,
             String notes
+    ) {}
+
+    public record TailorStatusUpdate(
+            TailorStatus status,
+            String tailoredCvPath,
+            String error
     ) {}
 
     public record Response(
@@ -31,6 +40,11 @@ public class ApplicationDtos {
             String externalJobId,
             Status status,
             String notes,
+            String locCode,
+            String mailAlias,
+            TailorStatus tailorStatus,
+            String tailoredCvPath,
+            String tailorError,
             Instant createdAt,
             Instant updatedAt
     ) {
@@ -45,6 +59,11 @@ public class ApplicationDtos {
                     e.getExternalJobId(),
                     e.getStatus(),
                     e.getNotes(),
+                    e.getLocCode(),
+                    e.getMailAlias(),
+                    e.getTailorStatus(),
+                    e.getTailoredCvPath(),
+                    e.getTailorError(),
                     e.getCreatedAt(),
                     e.getUpdatedAt()
             );

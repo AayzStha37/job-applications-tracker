@@ -1,4 +1,5 @@
 import type { JobData } from "../../shared/types";
+import { elementToMarkdown } from "../../shared/html-to-markdown";
 
 function meta(property: string): string {
   const el = document.querySelector<HTMLMetaElement>(
@@ -51,6 +52,23 @@ function findReqIdInText(): string {
   return match ? match[1] : "";
 }
 
+function pickDescriptionEl(): Element | null {
+  const candidates = [
+    'article',
+    'main',
+    '[class*="job-description" i]',
+    '[class*="jobdescription" i]',
+    '[id*="job-description" i]',
+    '[id*="jobdescription" i]',
+    '[class*="description" i]',
+  ];
+  for (const sel of candidates) {
+    const el = document.querySelector(sel);
+    if (el && (el.textContent?.length ?? 0) > 200) return el;
+  }
+  return null;
+}
+
 export function fromGeneric(): Partial<JobData> {
   const siteName = meta("og:site_name");
   const host = location.hostname.replace(/^www\./, "");
@@ -62,5 +80,6 @@ export function fromGeneric(): Partial<JobData> {
     company: (!isBrandName && siteName) ? siteName : "",
     location: "",
     externalJobId: guessIdFromUrl() || findReqIdInText(),
+    jobDescription: elementToMarkdown(pickDescriptionEl()),
   };
 }

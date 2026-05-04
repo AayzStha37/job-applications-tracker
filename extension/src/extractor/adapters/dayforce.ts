@@ -1,4 +1,5 @@
 import type { JobData } from "../../shared/types";
+import { elementToMarkdown } from "../../shared/html-to-markdown";
 
 function text(sel: string): string {
   return document.querySelector(sel)?.textContent?.trim() ?? "";
@@ -56,10 +57,18 @@ export function fromDayforce(): Partial<JobData> {
         .replace(/\b\w/g, (c) => c.toUpperCase())
     : "";
 
+  const descEl =
+    document.querySelector("[class*='job-description']") ||
+    document.querySelector("[class*='jobDescription']") ||
+    document.querySelector("[data-testid='job-description']") ||
+    document.querySelector("article") ||
+    document.querySelector("main");
+
   return {
     position,
     company: company || companyFromSlug,
     location: loc,
     externalJobId: externalJobId || findReqId(),
+    jobDescription: elementToMarkdown(descEl),
   };
 }
