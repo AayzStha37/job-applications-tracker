@@ -10,4 +10,6 @@ public interface ApplicationRepository extends JpaRepository<ApplicationEntity, 
     List<ApplicationEntity> findAllByOrderByUpdatedAtDesc();
 
     Optional<ApplicationEntity> findBySourceAndExternalJobId(String source, String externalJobId);
+
+    Optional<ApplicationEntity> findByUrl(String url);
 }

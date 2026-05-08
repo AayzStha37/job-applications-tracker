@@ -21,6 +21,7 @@ export interface Application {
   notes: string | null;
   createdAt: string;
   updatedAt: string;
+  statusChangedAt: string | null;
 }
 
 export interface CreateApplicationRequest {

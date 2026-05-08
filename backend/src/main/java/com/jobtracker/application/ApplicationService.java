@@ -3,6 +3,7 @@ package com.jobtracker.application;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,9 +20,16 @@ public class ApplicationService {
 
     @Transactional
     public UpsertResult upsert(ApplicationDtos.CreateRequest req) {
+        // Dedup by (source, externalJobId) when job ID is present
         if (req.externalJobId() != null && !req.externalJobId().isBlank()) {
             Optional<ApplicationEntity> existing =
                     repository.findBySourceAndExternalJobId(req.source(), req.externalJobId());
+            if (existing.isPresent()) {
+                return new UpsertResult(existing.get(), false);
+            }
+        } else {
+            // No job ID — dedup by URL to avoid unique constraint violation
+            Optional<ApplicationEntity> existing = repository.findByUrl(req.url());
             if (existing.isPresent()) {
                 return new UpsertResult(existing.get(), false);
             }
@@ -48,7 +56,10 @@ public class ApplicationService {
     @Transactional
     public Optional<ApplicationEntity> update(Long id, ApplicationDtos.UpdateRequest req) {
         return repository.findById(id).map(e -> {
-            if (req.status() != null) e.setStatus(req.status());
+            if (req.status() != null && req.status() != e.getStatus()) {
+                e.setStatus(req.status());
+                e.setStatusChangedAt(Instant.now());
+            }
             if (req.notes() != null) e.setNotes(req.notes());
             return e;
         });

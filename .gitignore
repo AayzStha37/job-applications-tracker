@@ -2,3 +2,12 @@
 *.log
 .vscode/
 .idea/
+
+# SQLite binary (bind-mounted) — backed up as SQL dump instead
+data/*.db
+data/*.db-journal
+data/*.db-wal
+data/*.db-shm
+
+# Keep the backup SQL dump tracked
+!data/backup.sql

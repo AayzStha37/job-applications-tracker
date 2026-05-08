@@ -63,7 +63,10 @@
         "*://*.successfactors.com/*",
         "*://*.applytojob.com/*",
         "*://*.bamboohr.com/careers/*",
-        "*://*.rippling.com/careers/*"
+        "*://*.rippling.com/careers/*",
+        "*://*.careers.com/*",
+        "*://*.careers.org/*",
+        "*://*.careers.net/*"
       ],
       "js": [
         "content-ui.js"

@@ -1,6 +1,7 @@
 package com.jobtracker.application;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -44,17 +45,24 @@ public class ApplicationEntity {
 
     private String notes;
 
+    @Convert(converter = InstantStringConverter.class)
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    @Convert(converter = InstantStringConverter.class)
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
+
+    @Convert(converter = InstantStringConverter.class)
+    @Column(name = "status_changed_at")
+    private Instant statusChangedAt;
 
     @PrePersist
     void onCreate() {
         Instant now = Instant.now();
         if (createdAt == null) createdAt = now;
         updatedAt = now;
+        if (statusChangedAt == null) statusChangedAt = now;
         if (status == null) status = Status.APPLIED;
     }
 
@@ -82,4 +90,6 @@ public class ApplicationEntity {
     public void setNotes(String notes) { this.notes = notes; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
+    public Instant getStatusChangedAt() { return statusChangedAt; }
+    public void setStatusChangedAt(Instant statusChangedAt) { this.statusChangedAt = statusChangedAt; }
 }

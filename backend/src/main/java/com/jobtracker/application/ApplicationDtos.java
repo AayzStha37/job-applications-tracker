@@ -32,7 +32,8 @@ public class ApplicationDtos {
             Status status,
             String notes,
             Instant createdAt,
-            Instant updatedAt
+            Instant updatedAt,
+            Instant statusChangedAt
     ) {
         public static Response from(ApplicationEntity e) {
             return new Response(
@@ -46,7 +47,8 @@ public class ApplicationDtos {
                     e.getStatus(),
                     e.getNotes(),
                     e.getCreatedAt(),
-                    e.getUpdatedAt()
+                    e.getUpdatedAt(),
+                    e.getStatusChangedAt()
             );
         }
     }

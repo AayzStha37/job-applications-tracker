@@ -7,7 +7,10 @@ const NS = "jt-tracker";
 // ── Guard against double-injection ──────────────────────────────────────
 if (!(globalThis as any).__jobTrackerInjected) {
   (globalThis as any).__jobTrackerInjected = true;
-  init();
+  // Skip if extension context is invalidated (stale content script after reload)
+  let contextValid = true;
+  try { chrome.runtime.getURL(""); } catch { contextValid = false; }
+  if (contextValid) init();
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────
@@ -292,7 +295,12 @@ function buildUI(shadow: ShadowRoot) {
 
   const fabLogo = document.createElement("img");
   fabLogo.className = "fab-logo";
-  fabLogo.src = chrome.runtime.getURL("icons/icon48.png");
+  try {
+    fabLogo.src = chrome.runtime.getURL("icons/icon48.png");
+  } catch {
+    // Extension context invalidated (e.g. after reload) — skip icon
+    fabLogo.style.display = "none";
+  }
   fabLogo.alt = "Track this job";
   fab.appendChild(fabLogo);
 

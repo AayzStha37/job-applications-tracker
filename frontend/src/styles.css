@@ -149,6 +149,17 @@ main {
   letter-spacing: 0.8px;
 }
 
+.column-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.column-icon {
+  color: var(--gold);
+  flex-shrink: 0;
+}
+
 .column-count {
   background: var(--border-light);
   color: var(--text-secondary);
@@ -185,10 +196,52 @@ main {
 
 .card:active { cursor: grabbing; }
 
+.card-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 6px;
+}
+
 .card-company {
   font-weight: 600;
   font-size: 14px;
   color: var(--text);
+  min-width: 0;
+}
+
+/* ── Time Badge ──────────────────────────────────── */
+
+.time-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.time-badge-icon {
+  flex-shrink: 0;
+}
+
+.time-badge-green {
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.12);
+}
+
+.time-badge-yellow {
+  color: #eab308;
+  background: rgba(234, 179, 8, 0.12);
+}
+
+.time-badge-red {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.12);
 }
 
 .card-position {
