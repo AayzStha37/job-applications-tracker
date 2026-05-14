@@ -11,6 +11,7 @@ interface Props {
 const LABELS: Record<Status, string> = {
   SAVED: "Saved",
   APPLIED: "Applied",
+  GHOSTED: "Ghosted",
   SCREEN: "Screen",
   INTERVIEW: "Interview",
   OFFER: "Offer",
@@ -41,6 +42,20 @@ function StatusIcon({ status }: { status: Status }) {
         <svg {...svgProps}>
           <path d="M22 2L11 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    case "GHOSTED":
+      // Ghost / vanish (simplified ghost shape)
+      return (
+        <svg {...svgProps}>
+          <path
+            d="M12 2a7 7 0 00-7 7v9l2-2 2 2 2-2 2 2 2-2 2 2V9a7 7 0 00-7-7z"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinejoin="round"
+          />
+          <circle cx="9.5" cy="10" r="1" fill="currentColor" />
+          <circle cx="14.5" cy="10" r="1" fill="currentColor" />
         </svg>
       );
     case "SCREEN":
@@ -81,10 +96,11 @@ function StatusIcon({ status }: { status: Status }) {
 
 export function Column({ status, applications, onOpen }: Props) {
   const { setNodeRef, isOver } = useDroppable({ id: status });
+  const isGhosted = status === "GHOSTED";
   return (
     <div
       ref={setNodeRef}
-      className={`column ${isOver ? "column-over" : ""}`}
+      className={`column ${isOver ? "column-over" : ""} ${isGhosted ? "column-ghosted" : ""}`}
     >
       <div className="column-header">
         <span className="column-label">

@@ -2,6 +2,7 @@
 *.log
 .vscode/
 .idea/
+.claude/
 
 # SQLite binary (bind-mounted) — backed up as SQL dump instead
 data/*.db

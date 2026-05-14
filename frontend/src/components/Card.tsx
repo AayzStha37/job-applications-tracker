@@ -26,7 +26,7 @@ export function Card({ application, onOpen }: Props) {
     >
       <div className="card-top-row">
         <div className="card-company">{application.company}</div>
-        <TimeBadge date={application.statusChangedAt ?? application.createdAt} />
+        <TimeBadge date={application.createdAt} />
       </div>
       <div className="card-position">{application.position}</div>
       {application.location && (

@@ -68,8 +68,12 @@ public class ApplicationEntity {
 
     @PreUpdate
     void onUpdate() {
-        updatedAt = Instant.now();
+        if (!manualUpdatedAt) updatedAt = Instant.now();
+        manualUpdatedAt = false;
     }
+
+    @jakarta.persistence.Transient
+    private boolean manualUpdatedAt = false;
 
     public Long getId() { return id; }
     public String getCompany() { return company; }
@@ -90,6 +94,7 @@ public class ApplicationEntity {
     public void setNotes(String notes) { this.notes = notes; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; this.manualUpdatedAt = true; }
     public Instant getStatusChangedAt() { return statusChangedAt; }
     public void setStatusChangedAt(Instant statusChangedAt) { this.statusChangedAt = statusChangedAt; }
 }

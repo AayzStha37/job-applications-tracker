@@ -2,12 +2,16 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createApplication,
   deleteApplication,
+  getCompaniesForStatus,
+  getStatusHistory,
+  getTransitions,
   listApplications,
   updateApplication,
 } from "../api/applications";
 import type { Application, CreateApplicationRequest, UpdateApplicationRequest } from "../types";
 
 const KEY = ["applications"] as const;
+const TRANSITIONS_KEY = ["transitions"] as const;
 
 export function useApplications() {
   return useQuery({
@@ -56,5 +60,28 @@ export function useDeleteApplication() {
   return useMutation({
     mutationFn: (id: number) => deleteApplication(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+  });
+}
+
+export function useTransitions() {
+  return useQuery({
+    queryKey: TRANSITIONS_KEY,
+    queryFn: getTransitions,
+  });
+}
+
+export function useCompaniesForStatus(status: string | null) {
+  return useQuery({
+    queryKey: ["companies", status],
+    queryFn: () => getCompaniesForStatus(status!),
+    enabled: status !== null,
+  });
+}
+
+export function useStatusHistory(applicationId: number | null) {
+  return useQuery({
+    queryKey: ["history", applicationId],
+    queryFn: () => getStatusHistory(applicationId!),
+    enabled: applicationId !== null,
   });
 }
