@@ -493,6 +493,9 @@ function init() {
       const res = await saveJob(payload);
       if (res.error) {
         showToast(shadow, "error", `Network error: ${res.error}`);
+      } else if (res.authError) {
+        showToast(shadow, "error", "Not authorized \u2014 open Options and set your API token.");
+        setTimeout(() => chrome.runtime.openOptionsPage(), 1500);
       } else if (res.status === 201) {
         showToast(shadow, "success", "Tracked!");
       } else if (res.status === 200) {

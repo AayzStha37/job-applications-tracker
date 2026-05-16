@@ -4,11 +4,12 @@ import { createRoot } from "react-dom/client";
 import { AddJobModal } from "./components/AddJobModal";
 import { Board } from "./components/Board";
 import { Dashboard } from "./components/Dashboard";
+import { Settings } from "./components/Settings";
 import "./styles.css";
 
 const client = new QueryClient();
 
-type Tab = "kanban" | "dashboard";
+type Tab = "kanban" | "dashboard" | "settings";
 
 function App() {
   const [showAdd, setShowAdd] = useState(false);
@@ -37,13 +38,19 @@ function App() {
           >
             Dashboard
           </button>
+          <button
+            className={`tab-btn ${tab === "settings" ? "active" : ""}`}
+            onClick={() => setTab("settings")}
+          >
+            Settings
+          </button>
         </div>
         <button className="add-job-btn" onClick={() => setShowAdd(true)}>
           <span className="add-icon">+</span> Add Job
         </button>
       </header>
       <main>
-        {tab === "kanban" ? <Board /> : <Dashboard />}
+        {tab === "kanban" ? <Board /> : tab === "dashboard" ? <Dashboard /> : <Settings />}
       </main>
       {showAdd && <AddJobModal onClose={() => setShowAdd(false)} />}
     </>

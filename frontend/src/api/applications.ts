@@ -6,14 +6,16 @@ import type {
   TransitionData,
   UpdateApplicationRequest,
 } from "../types";
+import { getAuthHeaders } from "./auth";
 
-const BASE = "http://127.0.0.1:8081";
+const BASE = (import.meta.env.VITE_API_BASE as string | undefined) ?? "http://127.0.0.1:8081";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
     ...init,
     headers: {
       "Content-Type": "application/json",
+      ...getAuthHeaders(),
       ...(init?.headers ?? {}),
     },
   });
