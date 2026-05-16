@@ -18,7 +18,43 @@ public class ApplicationDtos {
 
     public record UpdateRequest(
             Status status,
-            String notes
+            String notes,
+            String company,
+            String position,
+            String location,
+            String url,
+            String source,
+            String externalJobId,
+            Instant updatedAt
+    ) {}
+
+    public record StatusHistoryResponse(
+            Long id,
+            Long applicationId,
+            Status fromStatus,
+            Status toStatus,
+            Instant changedAt
+    ) {
+        public static StatusHistoryResponse from(StatusHistoryEntity e) {
+            return new StatusHistoryResponse(
+                    e.getId(),
+                    e.getApplicationId(),
+                    e.getFromStatus(),
+                    e.getToStatus(),
+                    e.getChangedAt()
+            );
+        }
+    }
+
+    public record TransitionResponse(
+            String fromStatus,
+            String toStatus,
+            long count
+    ) {}
+
+    public record CompaniesResponse(
+            String status,
+            java.util.List<String> companies
     ) {}
 
     public record Response(
@@ -32,7 +68,8 @@ public class ApplicationDtos {
             Status status,
             String notes,
             Instant createdAt,
-            Instant updatedAt
+            Instant updatedAt,
+            Instant statusChangedAt
     ) {
         public static Response from(ApplicationEntity e) {
             return new Response(
@@ -46,7 +83,8 @@ public class ApplicationDtos {
                     e.getStatus(),
                     e.getNotes(),
                     e.getCreatedAt(),
-                    e.getUpdatedAt()
+                    e.getUpdatedAt(),
+                    e.getStatusChangedAt()
             );
         }
     }

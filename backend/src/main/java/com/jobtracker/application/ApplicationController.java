@@ -37,14 +37,18 @@ public class ApplicationController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<ApplicationDtos.Response> update(
+    public ResponseEntity<?> update(
             @PathVariable Long id,
             @RequestBody ApplicationDtos.UpdateRequest req
     ) {
-        return service.update(id, req)
-                .map(ApplicationDtos.Response::from)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        try {
+            return service.update(id, req)
+                    .map(ApplicationDtos.Response::from)
+                    .map(r -> ResponseEntity.ok((Object) r))
+                    .orElse(ResponseEntity.notFound().build());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));
+        }
     }
 
     @DeleteMapping("/{id}")
@@ -52,5 +56,26 @@ public class ApplicationController {
         return service.delete(id)
                 ? ResponseEntity.noContent().build()
                 : ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/transitions")
+    public List<ApplicationDtos.TransitionResponse> transitions() {
+        return service.getTransitions();
+    }
+
+    @GetMapping("/transitions/{status}")
+    public ApplicationDtos.CompaniesResponse companiesForStatus(@PathVariable Status status) {
+        List<String> companies = service.getCompaniesForStatus(status);
+        return new ApplicationDtos.CompaniesResponse(status.name(), companies);
+    }
+
+    @GetMapping("/{id}/history")
+    public ResponseEntity<List<ApplicationDtos.StatusHistoryResponse>> history(@PathVariable Long id) {
+        List<ApplicationDtos.StatusHistoryResponse> hist = service.getHistory(id)
+                .stream()
+                .map(ApplicationDtos.StatusHistoryResponse::from)
+                .toList();
+        if (hist.isEmpty()) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(hist);
     }
 }

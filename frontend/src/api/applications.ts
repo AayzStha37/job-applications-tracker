@@ -1,4 +1,11 @@
-import type { Application, CreateApplicationRequest, UpdateApplicationRequest } from "../types";
+import type {
+  Application,
+  CompaniesData,
+  CreateApplicationRequest,
+  StatusHistoryEntry,
+  TransitionData,
+  UpdateApplicationRequest,
+} from "../types";
 
 const BASE = "http://127.0.0.1:8081";
 
@@ -40,4 +47,16 @@ export function updateApplication(
 
 export function deleteApplication(id: number): Promise<void> {
   return request<void>(`/applications/${id}`, { method: "DELETE" });
+}
+
+export function getTransitions(): Promise<TransitionData[]> {
+  return request<TransitionData[]>("/applications/transitions");
+}
+
+export function getCompaniesForStatus(status: string): Promise<CompaniesData> {
+  return request<CompaniesData>(`/applications/transitions/${status}`);
+}
+
+export function getStatusHistory(applicationId: number): Promise<StatusHistoryEntry[]> {
+  return request<StatusHistoryEntry[]>(`/applications/${applicationId}/history`);
 }

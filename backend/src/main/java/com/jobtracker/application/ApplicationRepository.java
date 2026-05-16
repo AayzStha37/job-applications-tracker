@@ -7,7 +7,9 @@ import java.util.Optional;
 
 public interface ApplicationRepository extends JpaRepository<ApplicationEntity, Long> {
 
-    List<ApplicationEntity> findAllByOrderByUpdatedAtDesc();
+    List<ApplicationEntity> findAllByOrderByCreatedAtDesc();
 
     Optional<ApplicationEntity> findBySourceAndExternalJobId(String source, String externalJobId);
+
+    Optional<ApplicationEntity> findByUrl(String url);
 }

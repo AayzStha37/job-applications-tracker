@@ -1,6 +1,7 @@
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import type { Application } from "../types";
+import { TimeBadge } from "./TimeBadge";
 
 interface Props {
   application: Application;
@@ -23,7 +24,10 @@ export function Card({ application, onOpen }: Props) {
       {...listeners}
       onDoubleClick={() => onOpen(application)}
     >
-      <div className="card-company">{application.company}</div>
+      <div className="card-top-row">
+        <div className="card-company">{application.company}</div>
+        <TimeBadge date={application.createdAt} />
+      </div>
       <div className="card-position">{application.position}</div>
       {application.location && (
         <div className="card-location">{application.location}</div>
