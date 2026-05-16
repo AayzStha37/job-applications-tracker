@@ -14,6 +14,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:sqlite:/data/jobs.db
       SERVER_ADDRESS: 0.0.0.0
       SERVER_PORT: 8081
+      APP_DEV_TOKEN: localdev
 
   frontend:
     build:
